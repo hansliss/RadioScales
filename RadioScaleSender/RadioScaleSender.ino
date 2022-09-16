@@ -151,8 +151,6 @@ void loadConfig() {
 #endif
 }
 
-HX711 scale;
-
 /*
  * LoRa stuff
  */
@@ -195,6 +193,39 @@ void onReceive(int packetSize) {
   if (receiveText(inbuf, BUFLEN)) {
     decryptText(inbuf, loraReceiveBuf);
     received = true;
+  }
+}
+
+/*
+ * HX711 load cell/scales stuff
+ */
+
+HX711 scale;
+
+void initScales() {
+  scale.begin(LOADCELL_DOUT_PIN,LOADCELL_SCK_PIN);
+  scale.set_gain(128);
+  scale.set_offset(config.offset);
+  scale.set_scale(config.scale);  
+}
+
+/*
+ * Read the current value from the scales, and only send it if the difference from
+ * the previous value exceeds the threshold.
+ */
+void checkScales() {
+  float curVal = scale.get_units(10) / 1000;
+  static char txtbuf[BUFLEN];
+#ifdef DEBUG
+  Serial.println(String("Read value ") + curVal);
+#endif
+  if (abs(curVal - lastVal) > config.sendThreshold) {
+#ifdef DEBUG
+    Serial.println("Sending...");
+#endif
+    sprintf(txtbuf, "L:%.2f", curVal);
+    sendEncrypted(txtbuf);
+    lastVal = curVal;
   }
 }
 
@@ -272,36 +303,6 @@ void handleCommand(char *cmd) {
   }
 }
 
-/*
- * HX711 load cell/scales stuff
- */
-void initScales() {
-  scale.begin(LOADCELL_DOUT_PIN,LOADCELL_SCK_PIN);
-  scale.set_gain(128);
-  scale.set_offset(config.offset);
-  scale.set_scale(config.scale);  
-}
-
-/*
- * Read the current value from the scales, and only send it if the difference from
- * the previous value exceeds the threshold.
- */
-void checkScales() {
-  float curVal = scale.get_units(10) / 1000;
-  static char txtbuf[BUFLEN];
-#ifdef DEBUG
-  Serial.println(String("Read value ") + curVal);
-#endif
-  if (abs(curVal - lastVal) > config.sendThreshold) {
-#ifdef DEBUG
-    Serial.println("Sending...");
-#endif
-    sprintf(txtbuf, "L:%.2f", curVal);
-    sendEncrypted(txtbuf);
-    lastVal = curVal;
-  }
-}
-
 void setup() {
   Heltec.begin(false /*DisplayEnable Enable*/, true /*LoRa Disable*/, SERIALFLAG /*Serial Enable*/, true /*PABOOST Enable*/, LORA_BAND /**/);
   EEPROM.begin(sizeof(config));
@@ -309,10 +310,10 @@ void setup() {
   initLoRa();
   initScales();
   initAES();
+  sendEncrypted("S:Started");
 }
 
 void loop() {
-  static char inbuf[BUFLEN], cmdbuf[BUFLEN];
   seedbuf[(seedbufCounter++) % 4] = LoRa.random();
   checkScales();
   if (received) {
