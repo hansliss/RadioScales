@@ -248,6 +248,7 @@ void loop() {
       sprintf(url, "%s%s", URLBASE, &(loraReceiveBuf[2]));
       if (http.begin(client, url)) {
         int httpCode = http.GET();
+        http.end();
       }
     }
     received = false;

@@ -11,4 +11,6 @@ Here's where I found the best information about how to use the load cells: https
 
 I used the AESLib by Matech Sychra (https://github.com/suculent/thinx-aes-lib) to begin with, but found a couple of issues with it and found it was abandonded, so I made my own fork, hopefully with better bugs: https://github.com/hansliss/thinx-aes-lib
 
-NOTE: I have noticed unexplained restarts, which may have to do with an ESP32 watchdog timer that needs to be fed. The HX711 library has references to this, among others in read_average(byte times), which references an issue and includes a "delay(0)" for this purpose. However, the linked issue has comments to the effect that "delay(0)" will *not* feed the watchdog, so this may require further investigation.
+Server-side scripts and files are in the Server subdirectory.
+
+A lot of this stuff has to be customized to fit your needs, of course, and there's not going to be much handholding.
