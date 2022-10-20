@@ -26,7 +26,7 @@
 #define DISPLAYFLAG true
 #endif
 
-#define URLBASE "http://chuao.home.liss.pp.se/saltScale/value.php?v="
+#define URLBASE "http://scales.home.liss.pp.se/saltScale/value.php?v="
 
 // LoRa settings
 #define BAND    433E6  //you can set band here directly,e.g. 868E6,915E6
